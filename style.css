@@ -44,23 +44,25 @@ body {
 }
 
 .page-layout {
-    max-width: 1600px;
+    max-width: 1200px;
     margin: 0 auto;
     display: grid;
-    grid-template-columns: minmax(120px, 220px) minmax(0, 1fr) minmax(120px, 220px);
-    gap: 1.25rem;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 1.5rem;
     align-items: start;
+    padding: 0 1rem;
 }
 
 .app-container {
-    max-width: 1200px;
-    margin: 0 auto;
     width: 100%;
+    min-width: 0;
+    /* Prevents grid blowout */
 }
 
 .side-ad {
     position: sticky;
     top: 1.5rem;
+    width: 100%;
 }
 
 .ad-slot {
@@ -83,6 +85,7 @@ body {
 .ad-slot small {
     font-size: 0.75rem;
 }
+
 
 header {
     display: flex;
@@ -581,7 +584,7 @@ button#add-city-btn:disabled {
 
 @media (max-width: 1024px) {
     .page-layout {
-        grid-template-columns: 1fr;
+        display: block;
     }
 
     .side-ad {
@@ -686,7 +689,6 @@ button#add-city-btn:disabled {
         display: none !important;
     }
 
-    .side-ad,
     .modal {
         display: none !important;
     }

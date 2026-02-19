@@ -44,47 +44,19 @@ body {
 }
 
 .page-layout {
-    max-width: 1200px;
+    max-width: 1000px;
     margin: 0 auto;
-    display: grid;
-    grid-template-columns: 310px minmax(0, 1fr) 310px;
-    gap: 1.5rem;
-    align-items: start;
+    display: block;
     padding: 0 1rem;
 }
 
 .app-container {
     width: 100%;
-    min-width: 0;
-    /* Prevents grid blowout */
+    max-width: 100%;
+    margin: 0 auto;
 }
 
-.side-ad {
-    position: sticky;
-    top: 1.5rem;
-    width: 100%;
-}
 
-.ad-slot {
-    min-height: 600px;
-    border-radius: 14px;
-    border: 1px dashed var(--border);
-    background: var(--bg-card);
-    backdrop-filter: var(--glass-blur);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    gap: 0.4rem;
-    padding: 1rem;
-    text-align: center;
-    color: var(--text-secondary);
-    font-size: 0.95rem;
-}
-
-.ad-slot small {
-    font-size: 0.75rem;
-}
 
 
 header {
@@ -583,14 +555,6 @@ button#add-city-btn:disabled {
 }
 
 @media (max-width: 1024px) {
-    .page-layout {
-        display: block;
-    }
-
-    .side-ad {
-        display: none;
-    }
-
     .ramadan-grid {
         grid-template-columns: repeat(4, 1fr);
     }

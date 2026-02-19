@@ -43,9 +43,45 @@ body {
     padding: 2rem;
 }
 
+.page-layout {
+    max-width: 1600px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: minmax(120px, 220px) minmax(0, 1fr) minmax(120px, 220px);
+    gap: 1.25rem;
+    align-items: start;
+}
+
 .app-container {
     max-width: 1200px;
     margin: 0 auto;
+    width: 100%;
+}
+
+.side-ad {
+    position: sticky;
+    top: 1.5rem;
+}
+
+.ad-slot {
+    min-height: 600px;
+    border-radius: 14px;
+    border: 1px dashed var(--border);
+    background: var(--bg-card);
+    backdrop-filter: var(--glass-blur);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 1rem;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.ad-slot small {
+    font-size: 0.75rem;
 }
 
 header {
@@ -65,7 +101,10 @@ header {
 
 #geo-btn,
 #share-btn,
-#theme-toggle {
+#theme-toggle,
+#contact-btn,
+#notify-btn,
+.toolbar-link-btn {
     background: var(--bg-card);
     border: 1px solid var(--border);
     color: var(--text-primary);
@@ -79,11 +118,15 @@ header {
     justify-content: center;
     padding: 0;
     transition: all 0.2s ease;
+    text-decoration: none;
 }
 
 #geo-btn:hover,
 #share-btn:hover,
-#theme-toggle:hover {
+#theme-toggle:hover,
+#contact-btn:hover,
+#notify-btn:hover,
+.toolbar-link-btn:hover {
     background: var(--border);
 }
 
@@ -455,7 +498,96 @@ button#add-city-btn:disabled {
     opacity: 0.8;
 }
 
+#notify-btn.active {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    z-index: 999;
+}
+
+.modal.open {
+    display: flex;
+}
+
+.modal-content {
+    width: 100%;
+    max-width: 460px;
+    background: var(--bg-body);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 1rem;
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.modal-close {
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-primary);
+    border-radius: 8px;
+    width: 34px;
+    height: 34px;
+    cursor: pointer;
+}
+
+.contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.contact-form input,
+.contact-form textarea {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.65rem 0.75rem;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    font-family: var(--font-main);
+}
+
+.contact-submit {
+    margin-top: 0.4rem;
+    border: none;
+    border-radius: 10px;
+    padding: 0.7rem 1rem;
+    background: var(--accent);
+    color: #fff;
+    font-family: var(--font-main);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+#contact-status-text {
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+}
+
 @media (max-width: 1024px) {
+    .page-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .side-ad {
+        display: none;
+    }
+
     .ramadan-grid {
         grid-template-columns: repeat(4, 1fr);
     }
@@ -551,6 +683,11 @@ button#add-city-btn:disabled {
     #dashboard,
     .print-button,
     .app-container>header {
+        display: none !important;
+    }
+
+    .side-ad,
+    .modal {
         display: none !important;
     }
 

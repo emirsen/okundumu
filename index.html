@@ -2,6 +2,14 @@
 <html lang="tr" data-theme="dark">
 
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-HZ6BTJH5EH"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-HZ6BTJH5EH');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Türkiye Namaz Vakitleri</title>
@@ -12,44 +20,86 @@
 </head>
 
 <body>
-    <div class="app-container">
-        <header>
-            <div class="logo">
-                <h1><span class="accent">Türkiye</span> Namaz Vakitleri </h1>
-            </div>
-            <div class="header-controls">
-                <button id="share-btn" aria-label="Paylaş" title="Bağlantıyı kopyala">
-                    <span class="icon">🔗</span>
-                </button>
-                <button id="geo-btn" aria-label="Konumumu Bul" title="En yakın ili bul">
-                    <span class="icon">📍</span>
-                </button>
-                <button id="theme-toggle" aria-label="Gece/Gündüz Modu">
-                    <span class="icon">🌙</span>
-                </button>
-            </div>
-        </header>
+    <div class="page-layout">
+        <aside class="side-ad side-ad-left" aria-label="Sol reklam alanı">
+            <div class="ad-slot"></div>
+        </aside>
 
-
-
-        <main id="dashboard" class="dashboard-grid">
-            <!-- City cards will be injected here -->
-        </main>
-
-        <section id="ramadan-calendar" class="ramadan-section">
-            <div class="section-header">
-                <h2 class="section-title">Ramazan İmsakiyesi <span id="imsakiye-city"></span> <span
-                        class="year">2026</span></h2>
-                <button id="print-btn" class="print-button" title="Yazdır">
-                    <span class="icon">🖨️</span> Yazdır
-                </button>
-            </div>
-            <div class="ramadan-scroll-container">
-                <div id="ramadan-grid" class="ramadan-grid">
-                    <!-- Ramadan boxes will be injected here -->
+        <div class="app-container">
+            <header>
+                <div class="logo">
+                    <h1><span class="accent">Türkiye</span> Namaz Vakitleri </h1>
                 </div>
+                <div class="header-controls">
+                    <a id="bmc-btn" class="toolbar-link-btn" aria-label="Buy Me a Coffee" title="Buy Me a Coffee"
+                        href="https://buymeacoffee.com/hymn123" target="_blank" rel="noopener noreferrer">
+                        <span class="icon">☕</span>
+                    </a>
+                    <button id="contact-btn" aria-label="İletişim" title="Mesaj gönder">
+                        <span class="icon">✉️</span>
+                    </button>
+                    <button id="notify-btn" aria-label="Bildirimleri Aç" title="İmsak ve Akşam bildirimi">
+                        <span class="icon">🔔</span>
+                    </button>
+                    <button id="share-btn" aria-label="Paylaş" title="Bağlantıyı kopyala">
+                        <span class="icon">🔗</span>
+                    </button>
+                    <button id="geo-btn" aria-label="Konumumu Bul" title="En yakın ili bul">
+                        <span class="icon">📍</span>
+                    </button>
+                    <button id="theme-toggle" aria-label="Gece/Gündüz Modu">
+                        <span class="icon">🌙</span>
+                    </button>
+                </div>
+            </header>
+
+
+
+            <main id="dashboard" class="dashboard-grid">
+                <!-- City cards will be injected here -->
+            </main>
+
+            <section id="ramadan-calendar" class="ramadan-section">
+                <div class="section-header">
+                    <h2 class="section-title">Ramazan İmsakiyesi <span id="imsakiye-city"></span> <span
+                            class="year">2026</span></h2>
+                    <button id="print-btn" class="print-button" title="Yazdır">
+                        <span class="icon">🖨️</span> Yazdır
+                    </button>
+                </div>
+                <div class="ramadan-scroll-container">
+                    <div id="ramadan-grid" class="ramadan-grid">
+                        <!-- Ramadan boxes will be injected here -->
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <aside class="side-ad side-ad-right" aria-label="Sağ reklam alanı">
+            <div class="ad-slot"></div>
+        </aside>
+    </div>
+
+    <div id="contact-modal" class="modal" aria-hidden="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>İletişim</h3>
+                <button id="contact-close-btn" class="modal-close" aria-label="Kapat">✖</button>
             </div>
-        </section>
+            <form id="contact-form" class="contact-form">
+                <label for="contact-name">Adınız</label>
+                <input id="contact-name" name="name" type="text" placeholder="Ad Soyad" required>
+
+                <label for="contact-email">E-posta</label>
+                <input id="contact-email" name="email" type="email" placeholder="ornek@mail.com" required>
+
+                <label for="contact-message">Mesajınız</label>
+                <textarea id="contact-message" name="message" rows="5" placeholder="Mesajınızı yazın..."
+                    required></textarea>
+
+                <button id="contact-submit-btn" type="submit" class="contact-submit">Gönder</button>
+            </form>
+        </div>
     </div>
 
     <script src="provinces.js"></script>

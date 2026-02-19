@@ -2,8 +2,11 @@
 const state = {
     currentTheme: localStorage.getItem('theme') || 'dark',
     trackedCities: [], // Array of { city, country, data, nextPrayer }
-    timerInterval: null
+    timerInterval: null,
+    notificationsEnabled: localStorage.getItem('notificationsEnabled') === 'true',
+    sentNotifications: JSON.parse(localStorage.getItem('sentNotifications') || '{}')
 };
+const CONTACT_FORM_ENDPOINT = 'https://formspree.io/f/mnjbzldo';
 
 // Ramadan 2026 Settings
 const RAMADAN_2026 = {
@@ -14,9 +17,15 @@ const RAMADAN_2026 = {
 
 // DOM Elements
 const themeToggle = document.getElementById('theme-toggle');
-
 const geoBtn = document.getElementById('geo-btn');
 const shareBtn = document.getElementById('share-btn');
+const notifyBtn = document.getElementById('notify-btn');
+const contactBtn = document.getElementById('contact-btn');
+const contactModal = document.getElementById('contact-modal');
+const contactCloseBtn = document.getElementById('contact-close-btn');
+const contactForm = document.getElementById('contact-form');
+const contactSubmitBtn = document.getElementById('contact-submit-btn');
+const contactStatusText = document.getElementById('contact-status-text');
 const dashboard = document.getElementById('dashboard');
 
 // Prayer Name Translations
@@ -37,10 +46,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // populateProvinceDropdown(); // Removed
 
     updateDashboardUI(); // Ensure UI runs once to show empty state if needed
+    syncNotificationStateUI();
+    setupContactUI();
 
-
-    // Auto-detect location if no cities tracked, otherwise load default
-    getUserLocation();
+    // On first load: ask location first, then ask notification permission.
+    getUserLocation(true);
 
     startTimer();
 
@@ -72,7 +82,7 @@ function applyTheme(theme) {
 
 
 // Geolocation Logic
-geoBtn.addEventListener('click', getUserLocation);
+geoBtn.addEventListener('click', () => getUserLocation(false));
 
 // Share Logic
 shareBtn.addEventListener('click', () => {
@@ -89,13 +99,42 @@ shareBtn.addEventListener('click', () => {
     });
 });
 
+if (notifyBtn) {
+    notifyBtn.addEventListener('click', async () => {
+        if (!('Notification' in window)) {
+            alert('Tarayıcınız bildirimleri desteklemiyor.');
+            return;
+        }
 
-function getUserLocation() {
+        if (state.notificationsEnabled) {
+            state.notificationsEnabled = false;
+            localStorage.setItem('notificationsEnabled', 'false');
+            syncNotificationStateUI();
+            return;
+        }
+
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+            state.notificationsEnabled = true;
+            localStorage.setItem('notificationsEnabled', 'true');
+            syncNotificationStateUI();
+            alert('Bildirimler açıldı: İmsak ve Akşam için 15 dk önce ve vakitte uyarı alacaksınız.');
+        } else {
+            alert('Bildirim izni verilmedi.');
+        }
+    });
+}
+
+
+function getUserLocation(askNotificationAfter = false) {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
             (position) => {
                 const { latitude, longitude } = position.coords;
                 findNearestProvince(latitude, longitude);
+                if (askNotificationAfter) {
+                    requestNotificationPermissionOnEntry();
+                }
             },
             (error) => {
                 console.error("Location access denied or failed", error);
@@ -103,10 +142,16 @@ function getUserLocation() {
                 if (state.trackedCities.length === 0) {
                     addCityToDashboard("İstanbul");
                 }
+                if (askNotificationAfter) {
+                    requestNotificationPermissionOnEntry();
+                }
             }
         );
     } else {
         alert("Tarayıcınız konum servisini desteklemiyor.");
+        if (askNotificationAfter) {
+            requestNotificationPermissionOnEntry();
+        }
     }
 }
 
@@ -296,6 +341,7 @@ function startTimer() {
     state.timerInterval = setInterval(() => {
         state.trackedCities.forEach(cityObj => {
             updateCityPrayerStatus(cityObj);
+            checkPrayerNotifications(cityObj);
         });
         updateDashboardUI();
     }, 1000);
@@ -528,3 +574,168 @@ window.handleCityChange = function (newCity) {
         addCityToDashboard(newCity);
     }
 };
+
+function setupContactUI() {
+    if (!contactBtn || !contactModal || !contactCloseBtn || !contactForm) return;
+
+    contactBtn.addEventListener('click', () => {
+        contactModal.classList.add('open');
+        contactModal.setAttribute('aria-hidden', 'false');
+    });
+
+    contactCloseBtn.addEventListener('click', closeContactModal);
+
+    contactModal.addEventListener('click', (event) => {
+        if (event.target === contactModal) {
+            closeContactModal();
+        }
+    });
+
+    contactForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const formData = new FormData(contactForm);
+        const name = (formData.get('name') || '').toString().trim();
+        const email = (formData.get('email') || '').toString().trim();
+        const message = (formData.get('message') || '').toString().trim();
+
+        if (CONTACT_FORM_ENDPOINT.includes('REPLACE_WITH_YOUR_FORM_ID')) {
+            alert('Bulut iletişim endpointi ayarlı değil. app.js içinde CONTACT_FORM_ENDPOINT değerini güncelleyin.');
+            return;
+        }
+
+        setContactFormSending(true, 'Gönderiliyor...');
+
+        const payload = {
+            name,
+            email,
+            message,
+            page: window.location.href,
+            createdAt: new Date().toISOString()
+        };
+
+        try {
+            const response = await fetch(CONTACT_FORM_ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                throw new Error('Cloud form submit failed');
+            }
+
+            contactForm.reset();
+            closeContactModal();
+            setContactFormSending(false, 'Mesajınız buluta kaydedildi ve iletildi.');
+            alert('Mesajınız gönderildi.');
+        } catch (error) {
+            console.error(error);
+            setContactFormSending(false, 'Gönderim başarısız. Lütfen tekrar deneyin.');
+            alert('Mesaj gönderilemedi. Lütfen tekrar deneyin.');
+        }
+    });
+}
+
+function closeContactModal() {
+    if (!contactModal) return;
+    contactModal.classList.remove('open');
+    contactModal.setAttribute('aria-hidden', 'true');
+}
+
+function setContactFormSending(isSending, statusText) {
+    if (contactSubmitBtn) {
+        contactSubmitBtn.disabled = isSending;
+        contactSubmitBtn.textContent = isSending ? 'Gönderiliyor...' : 'Gönder';
+    }
+    if (contactStatusText && statusText) {
+        contactStatusText.textContent = statusText;
+    }
+}
+
+function syncNotificationStateUI() {
+    if (!notifyBtn) return;
+    if (!('Notification' in window) || Notification.permission !== 'granted') {
+        state.notificationsEnabled = false;
+        localStorage.setItem('notificationsEnabled', 'false');
+    }
+    notifyBtn.classList.toggle('active', state.notificationsEnabled);
+    notifyBtn.title = state.notificationsEnabled ? 'Bildirimler Açık' : 'İmsak ve Akşam bildirimi';
+}
+
+async function requestNotificationPermissionOnEntry() {
+    if (!('Notification' in window)) return;
+
+    if (Notification.permission === 'granted') {
+        state.notificationsEnabled = true;
+        localStorage.setItem('notificationsEnabled', 'true');
+        syncNotificationStateUI();
+        return;
+    }
+
+    if (Notification.permission === 'denied') {
+        state.notificationsEnabled = false;
+        localStorage.setItem('notificationsEnabled', 'false');
+        syncNotificationStateUI();
+        return;
+    }
+
+    const permission = await Notification.requestPermission();
+    if (permission === 'granted') {
+        state.notificationsEnabled = true;
+        localStorage.setItem('notificationsEnabled', 'true');
+    } else {
+        state.notificationsEnabled = false;
+        localStorage.setItem('notificationsEnabled', 'false');
+    }
+    syncNotificationStateUI();
+}
+
+function checkPrayerNotifications(cityObj) {
+    if (!state.notificationsEnabled || !('Notification' in window) || Notification.permission !== 'granted') return;
+
+    const now = new Date();
+    const targets = [
+        { key: 'Fajr', trName: 'İmsak', offsetMinutes: 15, type: 'before' },
+        { key: 'Fajr', trName: 'İmsak', offsetMinutes: 0, type: 'exact' },
+        { key: 'Maghrib', trName: 'Akşam', offsetMinutes: 15, type: 'before' },
+        { key: 'Maghrib', trName: 'Akşam', offsetMinutes: 0, type: 'exact' }
+    ];
+
+    for (const target of targets) {
+        const timeStr = cityObj.timings[target.key];
+        if (!timeStr) continue;
+
+        const [hours, minutes] = timeStr.split(':').map(Number);
+        const prayerDate = new Date();
+        prayerDate.setHours(hours, minutes, 0, 0);
+
+        const diffMs = prayerDate - now;
+        const shouldTrigger = target.type === 'before'
+            ? diffMs <= target.offsetMinutes * 60 * 1000 && diffMs > (target.offsetMinutes - 1) * 60 * 1000
+            : diffMs <= 0 && diffMs > -60 * 1000;
+
+        if (!shouldTrigger) continue;
+
+        const key = `${cityObj.city}-${getLocalDateKey(now)}-${target.key}-${target.type}`;
+        if (state.sentNotifications[key]) continue;
+
+        const title = target.type === 'before'
+            ? `${target.trName} vaktine 15 dakika kaldı`
+            : `${target.trName} vakti girdi`;
+        const body = `${cityObj.city} - ${timeStr}`;
+
+        new Notification(title, { body, tag: key });
+        state.sentNotifications[key] = true;
+        localStorage.setItem('sentNotifications', JSON.stringify(state.sentNotifications));
+    }
+}
+
+function getLocalDateKey(date) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+}
